@@ -89,4 +89,6 @@ for entity_datas in data.values():
     entity_datas.sort(key=lambda v: v['fileName'])
 
 with open(os.path.join(data_root, 'data.json'), mode='w', encoding='utf8') as f:
-    json.dump(data, f)
+    data_encoded = json.dumps(data)
+    data_encoded = data_encoded.replace('}, ', '},\n').replace('[{', '[\n{').replace('}]', '}\n]')
+    f.write(data_encoded)
