@@ -1,6 +1,6 @@
 import { getDataForType } from "./data";
 import { ENTITY_TYPE_VALUES, EntityType, Rarity, RARITY_VALUES, type Entity, type EntityData, type Tile, type TileData } from "./Entity";
-import type { RandomGroup, RandomManager } from "./RandomManager";
+import { RandomGroup, type RandomManager } from "./RandomManager";
 
 // Based on EntityPool from decompiled Zoominoes source code
 
@@ -166,7 +166,9 @@ export class EntityPool {
     rollEntity(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): Entity {
 		const data = this.rollEntityData(entityType, rarity, rng, rngGroup, bannedDatas);
 		if (entityType === EntityType.Tile) {
-            const color = rng.randomFromList((data as TileData).possibleColors, rngGroup);
+            // TODO: Because the color is drawn from RandomGroup.Create it is affected by random transforms and other transient events.
+            // This makes the color extremely hard to reliably predict, so maybe we should just exclude it from our data model?.
+            const color = rng.randomFromList((data as TileData).possibleColors, RandomGroup.Create);
             return { data, color } as Tile
         }
         return { data };
