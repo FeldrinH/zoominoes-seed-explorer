@@ -1,15 +1,34 @@
-import { EntityType, Rarity, type Entity, type EntityData, type Tile } from "./Entity";
+import { EntityType, Rarity, type DifficultyData, type Entity, type EntityData, type Level } from "./Entity";
 import { type EntityPool } from "./EntityPool";
 import { RandomGroup, type RandomManager } from "./RandomManager";
 
-export function isShop(level: number): boolean {
-    return level % 7 === 2 || level % 7 === 5;
+export function isShop(level: Level): boolean {
+    return level.data.rarity === Rarity.Uncommon;
+}
+
+export function isScheduledShop(level: number, difficulty: DifficultyData): boolean {
+    return difficulty.levelSchedule[level] === Rarity.Uncommon;
+}
+
+// Based on GameState.PopulateLevels from decompiled Zoominoes source code.
+export function rollLevels(entityPool: EntityPool, randomManager: RandomManager, difficultyData: DifficultyData): Level[] {
+    const currentLevels: Level[] = [];
+    const list: EntityData[] = [];
+    for (let i = 0; i < difficultyData.levelSchedule.length; i++) {
+        const rarity = difficultyData.levelSchedule[i];
+        const levelData = entityPool.rollEntityData(EntityType.Level, rarity, randomManager, RandomGroup.General, list);
+        if (rarity === Rarity.Rare || rarity === Rarity.Mythical) {
+            list.push(levelData);
+        }
+        currentLevels.push({ day: i + 1, data: levelData });
+    }
+    return currentLevels;
 }
 
 // Based on GameController.GetRewards from decompiled Zoominoes source code.
 // Note: Level starts from 0, so day 1 is level 0.
 export function rollRewards(entityPool: EntityPool, randomManager: RandomManager, level: number, addSpell: boolean = true): Entity[] {
-    const list = [];
+    const list: Entity[] = [];
     const list2: EntityData[] = [];
     const rarity = !entityPool.onlyMythicTiles ? entityPool.rollRarity(level, EntityType.Tile, randomManager, RandomGroup.Rewards) : Rarity.Mythical;
     // TODO: Support color and type incense rewards?
@@ -38,7 +57,7 @@ export function rollShop(entityPool: EntityPool, randomManager: RandomManager, l
     const treasuresCount = extraItems ? 4 : 3;
 
     const list: EntityData[] = [];
-    const list2 = [];
+    const list2: Entity[] = [];
     const collection = entityPool.rollUniquesByLevel(level, EntityType.Spell, spellsCount, randomManager, rngGroup, list);
     list2.push(...collection);
     const collection2 = entityPool.rollUniquesByRarity(EntityType.Treasure, Rarity.Gem, gemsCount, randomManager, rngGroup, list);

@@ -14,6 +14,8 @@ export function getDataForType(type: EntityType): EntityData[] {
             return data['SpellData'];
         case EntityType.Level:
             return data['LevelData'];
+        case EntityType.Difficulty:
+            return data['DifficultyData'];
         default:
             return [];
     }

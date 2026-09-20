@@ -33,6 +33,11 @@ export const RARITY_VALUES = [
     Rarity.Gem, Rarity.Deleted, Rarity.Starter, Rarity.Challenge,
 ];
 
+export const RARITY_NAMES = [
+	'Special', 'Common', 'Uncommon', 'Rare', 'Mythical',
+	'Gem', 'Deleted', 'Starter', 'Challenge',
+]
+
 export const enum OuterColor {
 	None = -1,
 	Red = 0,
@@ -73,4 +78,9 @@ export interface Entity {
 
 export interface Tile extends Entity {
 	color: OuterColor;
+}
+
+export interface Level {
+	day: number; // NB! Day numbers start from 1, unlike the level index expected by roll functions, which starts from 0.
+	data: EntityData;
 }

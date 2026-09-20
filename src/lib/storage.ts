@@ -1,14 +1,18 @@
 import { onDestroy } from "svelte";
 
-export function getQueryParam(key: string, defaultValue: string): string {
+export function getQueryParam(key: string): string {
     const params = new URLSearchParams(window.location.search);
-    return params.get(key) ?? defaultValue;
+    return params.get(key) ?? '';
 }
 
 export function setQueryParam(key: string, value: string) {
     const url = new URL(window.location.href);
-    url.searchParams.set(key, value);
-    history.replaceState(null, '', url);
+    if (value == '') {
+        url.searchParams.delete(key);
+    } else {
+        url.searchParams.set(key, value);
+    }
+    history.replaceState(history.state, '', url);
 }
 
 export function loadValue<T>(key: string, defaultValue: T): T {
