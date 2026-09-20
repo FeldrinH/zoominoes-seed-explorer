@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { Rarity } from "./game/Entity";
     import { EntityPool } from "./game/EntityPool";
     import { getRandomSeed, RandomManager } from "./game/RandomManager";
     import { isShop, rollRewards, rollShop } from "./game/RollManager";
-    import { TaskContext } from "./components/task";
+    import { TaskContext } from "./lib/task";
 
     const taskContext = new TaskContext();
 
@@ -21,16 +20,18 @@
             const randomManager = new RandomManager(seed);
         
             const rewardTargets = ['Tanuki', 'Moth', 'Kangaroo'];
-            const shopTargets = ['Summoning Flute', 'Super Ghost Pepper'];
+            const shopTargets = ['Super Ghost Pepper'];
+            const shopTargetCounts = [2];
 
             const allRewards = [];
             for (let level = 0; level < 15; level++) {
                 if (isShop(level)) {
                     const items = rollShop(entityPool, randomManager, level, false);
                     allRewards.push(items);
-                    for (let i = rewardTargets.length - 1; i >= 0; i--) {
+                    for (let i = 0; i < shopTargets.length; i++) {
+                        if (shopTargetCounts[i] === 0) continue;
                         if (items.some(r => r.data.name === shopTargets[i])) {
-                            shopTargets.splice(i, 1);
+                            shopTargetCounts[i] -= 1;
                         }
                     }
                 } else {
@@ -49,7 +50,7 @@
                 output[0] = `${k} attempts`;
                 yield output;
             }
-            if (rewardTargets.length === 0 && shopTargets.length === 0) {
+            if (rewardTargets.length === 0 && shopTargetCounts.every(v => v === 0)) {
                 output = [`${k} attempts`, `Seed ${seed}`];
                 for (const rewards of allRewards) {
                     output.push(rewards.map(r => r.data.name).join(" | "));
