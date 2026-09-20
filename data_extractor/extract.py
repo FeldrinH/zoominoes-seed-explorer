@@ -2,7 +2,7 @@ import json
 import os
 
 from UnityPy import Environment
-from UnityPy.classes import TextAsset, Texture2D, UnknownObject
+from UnityPy.classes import TextAsset
 from UnityPy.enums import ClassIDType
 from UnityPy.helpers.TypeTreeGenerator import TypeTreeGenerator
 
@@ -24,7 +24,7 @@ generator = TypeTreeGenerator(unity_version)
 generator.load_local_game(GAME_ROOT_DIR)
 env_assets.typetree_generator = generator
 
-sprites_root = os.path.join(os.path.dirname(__file__), '../public/sprites')
+sprites_root = os.path.join(os.path.dirname(__file__), '../static/sprites')
 data_root = os.path.join(os.path.dirname(__file__), '../src/game/')
 os.makedirs(sprites_root, exist_ok=True)
 os.makedirs(data_root, exist_ok=True)

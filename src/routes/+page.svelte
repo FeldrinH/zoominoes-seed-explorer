@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { EntityPool } from "./game/EntityPool";
-    import { getRandomSeed, RandomManager } from "./game/RandomManager";
-    import { isShop, rollRewards, rollShop } from "./game/RollManager";
-    import { TaskContext } from "./lib/task";
+    import { EntityPool } from "@/game/EntityPool";
+    import { getRandomSeed, RandomManager } from "@/game/RandomManager";
+    import { isShop, rollRewards, rollShop } from "@/game/RollManager";
+    import { TaskContext } from "@/lib/task";
 
     const taskContext = new TaskContext();
 
@@ -73,10 +73,6 @@
 {/each}
 
 <style>
-    :global(html, body) {
-        margin: 0;
-    }
-
     p {
         margin-bottom: 2px;
     }
