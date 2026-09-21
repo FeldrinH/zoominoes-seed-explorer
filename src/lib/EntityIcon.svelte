@@ -45,7 +45,7 @@
         padding: 10px;
         background-color: #FFF1CE;
 
-        font-weight: bold;
+        font-weight: 600;
         line-height: initial;
         text-align: center;
 

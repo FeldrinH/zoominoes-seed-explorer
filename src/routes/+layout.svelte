@@ -34,16 +34,19 @@
     }
 
     @font-face {
-        font-display: swap;
         font-family: 'Fredoka';
         font-style: normal;
-        font-weight: 400;
-        src: url('/fonts/fredoka-latin-regular.woff2') format('woff2');
+        font-weight: 300 700;
+        font-stretch: 100%;
+        font-display: swap;
+        src: url('/fonts/fredoka-latin-variable.woff2') format('woff2');
     }
+
     :global(html, body) {
         margin: 0;
         font-family: 'Fredoka', sans-serif;
     }
+
     :global(input, button) {
         font-family: 'Fredoka', sans-serif;
     }

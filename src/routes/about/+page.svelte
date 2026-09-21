@@ -41,4 +41,8 @@
         margin: 0 auto;
         font-size: 1.2rem;
     }
+
+    b {
+        font-weight: 600;
+    }
 </style>

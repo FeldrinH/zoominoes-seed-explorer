@@ -25,8 +25,8 @@
         width: 70px;
         height: 70px;
         
-        font-size: 40px;
-        font-weight: bold;
+        font-size: 48px;
+        font-weight: 700;
         line-height: 70px;
         text-align: center;
         vertical-align: middle;
@@ -58,7 +58,7 @@
         background-color: #FFF1CE;
 
         font-size: 1.25rem;
-        font-weight: bold;
+        font-weight: 600;
         line-height: initial;
         text-align: center;
 
