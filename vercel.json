@@ -1,0 +1,11 @@
+{
+    "headers": [
+        {
+            "source": "/(sprites|fonts)/.+",
+            "headers": [{
+                "key": "Cache-Control",
+                "value": "max-age=604800, stale-while-revalidate=31536000"
+            }]
+        }
+    ]
+}
