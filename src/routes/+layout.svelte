@@ -1,10 +1,18 @@
-<script>
+<script lang="ts">
+    import type { MouseEventHandler } from 'svelte/elements';
+
 	let { children } = $props();
+
+    const preventSamePageNavigate: MouseEventHandler<HTMLAnchorElement> = event => {
+        if (event.currentTarget.pathname === window.location.pathname) {
+            event.preventDefault();
+        }
+    }
 </script>
 
 <nav>
-	<a href="/">View</a>
-    <!--a href="/search">Search</a-->
+	<a href="/" onclick={preventSamePageNavigate}>View</a>
+    <!--a href="/search" onclick={preventSamePageNavigate}>Search</a-->
     <a href="/about">About</a>
 </nav>
 

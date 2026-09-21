@@ -11,12 +11,17 @@ export function setQueryParams(...params: [string, string][]) {
 }
 
 export function loadValue<T>(key: string, defaultValue: T): T {
-    const value = localStorage.getItem(key);
-    return (value != null ? JSON.parse(value) : defaultValue);
+    const sessionValue = sessionStorage.getItem(key);
+    if (sessionValue != null) return JSON.parse(sessionValue);
+    const localValue = localStorage.getItem(key);
+    if (localValue != null) return JSON.parse(localValue);
+    return defaultValue;
 }
 
 export function saveValue<T>(key: string, value: T) {
-    localStorage.setItem(key, JSON.stringify(value));
+    const encodedValue = JSON.stringify(value);
+    sessionStorage.setItem(key, encodedValue)
+    localStorage.setItem(key, encodedValue);
 }
 
 export function onDestroyOrHide(callback: () => void) {
