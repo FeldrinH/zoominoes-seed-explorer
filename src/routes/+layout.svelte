@@ -11,7 +11,7 @@
 {@render children()}
 
 <footer>
-    Zoominoes Seed Explorer by FeldrinH | Source code on <a href="todo">GitHub</a>
+    Zoominoes Seed Explorer by FeldrinH for Zoominoes 1.0.6 | Source code on <a href="https://github.com/FeldrinH/zoominoes-seed-explorer">GitHub</a>
     <br>
     Zoominoes art and other assets used on this site belong to Starlight Games inc.
 </footer>
