@@ -17,12 +17,18 @@
             It is also used to determine the color of reward animals.</li>
     </ul>
     <p>
+        For most items, the game first picks a rarity and then picks a random item from all items of that rarity.
+        The distribution of rarities depends on the day, with higher rarities becoming more likely during later days.
+        It is worth noting that some rarities are completely impossible to get during certain parts of the game.
+        For example, mythical animals have a chance of 0% before day 5, and common animals have a chance of 0% after day 6.
+    </p>
+    <p>
         As a result of how the RNG in the game works, there are some limitations to the ability to predict seeded runs.
         While the seed fully determines the random values generated, the game may interpret the values differently depending on your actions during the run.
         The following is a (non-exhaustive) list of caveats to keep in mind when using this tool to view or search for specific seeds:
     </p>
     <ul>
-        <li>You can't get the same souvenir twice. As a result, getting any souvenir affects all the souvenirs offered in subsequent shops.
+        <li>You can't get the same souvenir twice. As a result, getting any souvenir affects all souvenirs offered in subsequent shops.
             This tool assumes that you have no souvenirs when calculating souvenirs offered in the shop, which unfortunately means that its predictions become incorrect as soon as you buy a souvenir.</li>
         <li>Anything that changes the number of snacks, gems, souvenirs, or sales in the shop changes the offered items in all subsequent shops.
             This includes for example Coupon Clippers and Delivery Stork.</li>
