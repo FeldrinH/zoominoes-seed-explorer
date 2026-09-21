@@ -46,8 +46,4 @@
         margin: 0;
         font-family: 'Fredoka', sans-serif;
     }
-
-    :global(input, button) {
-        font-family: 'Fredoka', sans-serif;
-    }
 </style>

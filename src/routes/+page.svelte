@@ -1,33 +1,36 @@
 <script lang="ts">
-    import { getDataForType } from "@/game/data";
-    import { EntityType, type Entity, type Level } from "@/game/Entity";
-    import { EntityPool } from "@/game/EntityPool";
+    import { type Entity, type Level } from "@/game/Entity";
+    import { DIFFICULTIES, EntityPool, MAX_DIFFICULTY } from "@/game/EntityPool";
     import { RandomManager } from "@/game/RandomManager";
     import { isShop, rollLevels, rollRewards, rollShop } from "@/game/roll";
     import DayIcon from "@/lib/DayIcon.svelte";
     import EntityIcon from "@/lib/EntityIcon.svelte";
-    import { getQueryParam, setQueryParam } from "@/lib/storage";
+    import { getQueryParams, setQueryParams } from "@/lib/storage";
 
     interface Day {
         level: Level;
         rewards: Entity[];
     }
 
-    let seed = $state(getQueryParam('seed'));
+    const params = getQueryParams();
+    
+    let seed = $state(params.get('seed') || '');
+    let difficulty = $state(params.get('difficulty') || MAX_DIFFICULTY.id)
+    
     let days: Day[] = $state([]);
-
-    // TODO: Add input to choose difficulty.
-    const difficultyData = getDataForType(EntityType.Difficulty)[0];
 
     show();
 
     function show() {        
-        setQueryParam('seed', seed);
-
         days = [];
 
-        if (seed === '') return;
+        if (seed === '') {
+            setQueryParams();
+            return;
+        }
+        setQueryParams(['seed', seed], ['difficulty', difficulty]);
 
+        const difficultyData = DIFFICULTIES.find(v => v.id === difficulty)!;
         const entityPool = new EntityPool();
         const randomManager = new RandomManager(seed);
 
@@ -48,6 +51,11 @@
 <main>
     <form onsubmit={e => e.preventDefault()}>
         <input type="text" placeholder="Enter seed..." bind:value={seed}>
+        <select placeholder="TERE LIST" bind:value={difficulty}>
+            {#each DIFFICULTIES as difficulty}
+                <option value={difficulty.id}>{difficulty.name}</option>
+            {/each}
+        </select>
         <button onclick={show}>Show</button>
     </form>
 
@@ -71,7 +79,8 @@
         margin: 0 auto;
     }
 
-    input, button {
+    input, button, select {
+        font-family: 'Fredoka', sans-serif;
         font-size: 1.5rem;
     }
 

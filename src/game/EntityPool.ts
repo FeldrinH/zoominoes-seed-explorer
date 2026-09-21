@@ -1,6 +1,13 @@
 import { getDataForType } from "./data";
-import { ENTITY_TYPE_VALUES, EntityType, Rarity, RARITY_VALUES, type Entity, type EntityData, type Tile, type TileData } from "./Entity";
+import { EntityType, Rarity, RARITY_VALUES, type DifficultyData, type Entity, type EntityData, type Tile, type TileData } from "./Entity";
 import { RandomGroup, type RandomManager } from "./RandomManager";
+
+// We use name as ID for aesthetic reasons. The ID shows up in query parameters.
+export const DIFFICULTIES: DifficultyData[] = getDataForType(EntityType.Difficulty)
+    .map(({ id, name, ...rest }) => ({ id: name.toLowerCase(), name, ...rest }));
+
+export const MIN_DIFFICULTY: DifficultyData = DIFFICULTIES[0];
+export const MAX_DIFFICULTY: DifficultyData = DIFFICULTIES[DIFFICULTIES.length - 1];
 
 // Based on EntityPool from decompiled Zoominoes source code
 
@@ -121,12 +128,9 @@ const oddsByTypeAndRarityAndLevel = new Map([
 export class EntityPool {
 	dataByTypeAndRarity: Map<EntityType, Map<Rarity, EntityData[]>>;
 
-	luckyMythica: boolean = false;
-    onlyMythicTiles: boolean = false;
-
 	constructor() {
 		this.dataByTypeAndRarity = new Map();
-		for (const value2 of ENTITY_TYPE_VALUES) {
+		for (const value2 of [EntityType.Tile, EntityType.Treasure, EntityType.Spell, EntityType.Level]) {
 			this.dataByTypeAndRarity.set(value2, new Map());
 			for (const value3 of RARITY_VALUES) {
 				this.dataByTypeAndRarity.get(value2)!.set(value3, []);
@@ -194,7 +198,7 @@ export class EntityPool {
 			bannedDatas = [];
 		}
 		if (entityType == EntityType.Tile) {
-			const rarity = !this.onlyMythicTiles ? this.rollRarity(level, entityType, rng, rngGroup) : Rarity.Mythical;
+			const rarity = this.rollRarity(level, entityType, rng, rngGroup);
 			return this.rollUniquesByRarity(entityType, rarity, count, rng, rngGroup, bannedDatas);
 		}
 		const list = [];
@@ -210,17 +214,7 @@ export class EntityPool {
 	}
 
 	rollRarity(level: number, entityType: EntityType, rng: RandomManager, rngGroup: RandomGroup): Rarity {
-		level = Math.min(Math.max(level, 0), 27);
-		if (this.luckyMythica && entityType == EntityType.Tile) {
-			const rarity = this.#rollRarity(level, entityType, rng, rngGroup);
-			if (rarity == Rarity.Mythical) {
-				return rarity;
-			}
-		}
-		return this.#rollRarity(level, entityType, rng, rngGroup);
-	}
-
-	#rollRarity(level: number, entityType: EntityType, rng: RandomManager, rngGroup: RandomGroup): Rarity {
+        level = Math.min(Math.max(level, 0), 27);
 		let num = rng.next(0, 100, rngGroup);
 		for (const key of oddsByTypeAndRarityAndLevel.get(entityType)!.keys()) {
 			const num2 = oddsByTypeAndRarityAndLevel.get(entityType)!.get(key)![level];

@@ -17,6 +17,6 @@ export function getDataForType(type: EntityType): EntityData[] {
         case EntityType.Difficulty:
             return data['DifficultyData'];
         default:
-            return [];
+            throw new Error(`No data for type ${type}`);
     }
 }

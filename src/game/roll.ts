@@ -30,7 +30,7 @@ export function rollLevels(entityPool: EntityPool, randomManager: RandomManager,
 export function rollRewards(entityPool: EntityPool, randomManager: RandomManager, level: number, addSpell: boolean = true): Entity[] {
     const list: Entity[] = [];
     const list2: EntityData[] = [];
-    const rarity = !entityPool.onlyMythicTiles ? entityPool.rollRarity(level, EntityType.Tile, randomManager, RandomGroup.Rewards) : Rarity.Mythical;
+    const rarity = entityPool.rollRarity(level, EntityType.Tile, randomManager, RandomGroup.Rewards);
     // TODO: Support color and type incense rewards?
     const num = 3;
     if (num > 0) {

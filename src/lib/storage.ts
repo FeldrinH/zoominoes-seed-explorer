@@ -1,17 +1,12 @@
 import { onDestroy } from "svelte";
 
-export function getQueryParam(key: string): string {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(key) ?? '';
+export function getQueryParams(): URLSearchParams {
+    return new URLSearchParams(window.location.search);
 }
 
-export function setQueryParam(key: string, value: string) {
+export function setQueryParams(...params: [string, string][]) {
     const url = new URL(window.location.href);
-    if (value == '') {
-        url.searchParams.delete(key);
-    } else {
-        url.searchParams.set(key, value);
-    }
+    url.search = new URLSearchParams(params).toString();
     history.replaceState(history.state, '', url);
 }
 
