@@ -1,49 +1,29 @@
 <script lang="ts">
-    import { type Entity, type Level } from "@/game/Entity";
-    import { DIFFICULTIES, EntityPool, MAX_DIFFICULTY } from "@/game/EntityPool";
-    import { RandomManager } from "@/game/RandomManager";
-    import { isShop, rollLevels, rollRewards, rollShop } from "@/game/roll";
-    import DayIcon from "@/lib/DayIcon.svelte";
-    import EntityIcon from "@/lib/EntityIcon.svelte";
+    import { DIFFICULTIES, MAX_DIFFICULTY } from "@/game/EntityPool";
+    import SeedDisplay from "@/lib/SeedDisplay.svelte";
     import { getQueryParams, setQueryParams } from "@/lib/storage";
-
-    interface Day {
-        level: Level;
-        rewards: Entity[];
-    }
 
     const params = getQueryParams();
     
     let seed = $state(params.get('seed') || '');
     let difficulty = $state(params.get('difficulty') || MAX_DIFFICULTY.id)
     
-    let days: Day[] = $state([]);
+    let shownSeed = $state('');
+    let shownDifficulty = $state('');
 
     show();
 
-    function show() {        
-        days = [];
-
+    function show() {
         if (seed === '') {
             setQueryParams();
-            return;
-        }
-        setQueryParams(['seed', seed], ['difficulty', difficulty]);
 
-        const difficultyData = DIFFICULTIES.find(v => v.id === difficulty)!;
-        const entityPool = new EntityPool();
-        const randomManager = new RandomManager(seed);
+            shownSeed = '';
+            shownDifficulty = '';
+        } else {
+            setQueryParams(['seed', seed], ['difficulty', difficulty]);
 
-        const levels = rollLevels(entityPool, randomManager, difficultyData);
-
-        for (let level = 0; level < 28; level++) {
-            if (isShop(levels[level])) {
-                const rewards = rollShop(entityPool, randomManager, level, false);
-                days.push({ level: levels[level], rewards });
-            } else {
-                const rewards = level == 27 ? [] : rollRewards(entityPool, randomManager, level);
-                days.push({ level: levels[level], rewards });
-            }
+            shownSeed = seed;
+            shownDifficulty = difficulty;
         }
     }
 </script>
@@ -60,11 +40,7 @@
     </form>
 
     <div class="container">
-        {#each days as day}
-            <div class="day">
-                <DayIcon level={day.level} />{#each day.rewards as reward}<EntityIcon entity={reward} />{/each}
-            </div>
-        {/each}
+        <SeedDisplay seed={shownSeed} difficulty={shownDifficulty}/>
     </div>
 </main>
 
@@ -86,13 +62,5 @@
 
     .container {
         margin: 40px 0;
-    }
-
-    .day {
-        margin: 10px 0;
-    }
-
-    .day > :global(div), .day > :global(img) {
-        margin: 0 5px;
     }
 </style>
