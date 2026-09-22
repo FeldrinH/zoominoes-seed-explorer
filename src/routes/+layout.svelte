@@ -12,7 +12,7 @@
 
 <nav>
 	<a href="/" onclick={preventSamePageNavigate}>View</a>
-    <!--a href="/search" onclick={preventSamePageNavigate}>Search</a-->
+    <a href="/search" onclick={preventSamePageNavigate}>Search</a>
     <a href="/about">About</a>
 </nav>
 

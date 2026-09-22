@@ -1,83 +1,219 @@
 <script lang="ts">
     import { getDataForType } from "@/game/data";
-    import { EntityType } from "@/game/Entity";
-    import { EntityPool } from "@/game/EntityPool";
+    import { EntityType, Rarity } from "@/game/Entity";
+    import { DIFFICULTIES, EntityPool, MAX_DIFFICULTY } from "@/game/EntityPool";
     import { getRandomSeed, RandomManager } from "@/game/RandomManager";
     import { isScheduledShop, rollRewards, rollShop } from "@/game/roll";
-    import { TaskContext } from "@/lib/task";
+    import SeedDisplay from "@/lib/SeedDisplay.svelte";
+    import { TaskContext } from "@/lib/TaskContext.svelte";
 
-    const taskContext = new TaskContext();
-
-    const difficultyData = getDataForType(EntityType.Difficulty)[0];
-
-    function compute() {
-        taskContext.run(doCompute(), v => output = v);
+    interface GoalData {
+        target: string;
+        minDay: number;
+        maxDay: number;
+        count: number;
     }
 
-    async function* doCompute() {
-        let output = [''];
-        yield output;
+    const rewardTargets = [
+        { label: 'Animals', values: getDataForType(EntityType.Tile).filter(e => e.rarity !== Rarity.Special && e.rarity !== Rarity.Starter) },
+        { label: 'Snacks', values: getDataForType(EntityType.Spell).filter(e => e.rarity === Rarity.Common || e.rarity === Rarity.Uncommon) },
+    ];
+    const shopTargets = [
+        { label: 'Snacks', values: getDataForType(EntityType.Spell) },
+        { label: 'Gems', values: getDataForType(EntityType.Treasure).filter(e => e.rarity === Rarity.Gem) },
+        { label: 'Souvenirs', values: getDataForType(EntityType.Treasure).filter(e => e.rarity !== Rarity.Gem) },
+    ];
+
+    const taskContext = new TaskContext();
+    const running = $derived(taskContext.isRunning());
+
+    let difficulty = $state(MAX_DIFFICULTY.id);
+
+    const rewardGoals: GoalData[] = $state([]);
+    const shopGoals: GoalData[] = $state([]);
+
+    let output: string = $state('');
+
+    let shownSeed: string = $state('');
+    let shownDifficulty: string = $state('');
+
+    function search() {
+        output = '';
+        shownSeed = '';
+        shownDifficulty = difficulty;
+        taskContext.run(doSearch(), value => {
+            const timeSeconds = value.time / 1000;
+            output = `${value.attempts} attempts in ${timeSeconds.toFixed(1)} seconds (${value.attempts === 0 ? 0 : (value.attempts / timeSeconds).toFixed()} attempts per second)`
+            if (value.seed) {
+                shownSeed = value.seed;
+            }
+        });
+        console.log(taskContext.isRunning(), running);
+    }
+
+    function cancelSearch() {
+        taskContext.stop();
+    }
+
+    function* doSearch() {
+        const start = performance.now();
+
+        const difficultyData = DIFFICULTIES.find(v => v.id === difficulty)!;
+
+        const rewardGoalsRef = $state.snapshot(rewardGoals).filter(g => g.target !== '');
+        const shopGoalsRef = $state.snapshot(shopGoals).filter(g => g.target !== '');
+
+        yield { attempts: 0, time: 0 };
 
         const entityPool = new EntityPool();
-        for (let k = 0;; k++) {
+        
+        for (let attempts = 1;; attempts++) {
             const seed = getRandomSeed(8);
             const randomManager = new RandomManager(seed);
         
-            const rewardTargets = ['Tanuki', 'Moth', 'Kangaroo'];
-            const shopTargets = ['Super Ghost Pepper'];
-            const shopTargetCounts = [2];
+            const rewardGoalsCur = rewardGoalsRef.map(g => ({ ...g }));
+            const shopGoalsCur = shopGoalsRef.map(g => ({ ...g }));
 
-            const allRewards = [];
-            for (let level = 0; level < 15; level++) {
+            outer:
+            for (let level = 0; level < difficultyData.levelSchedule.length; level++) {
                 if (isScheduledShop(level, difficultyData)) {
+                    if (shopGoalsCur.length === 0) continue;
                     const items = rollShop(entityPool, randomManager, level, false);
-                    allRewards.push(items);
-                    for (let i = 0; i < shopTargets.length; i++) {
-                        if (shopTargetCounts[i] === 0) continue;
-                        if (items.some(r => r.data.name === shopTargets[i])) {
-                            shopTargetCounts[i] -= 1;
+                    for (let i = shopGoalsCur.length - 1; i >= 0; i--) {
+                        const goal = shopGoalsCur[i];
+                        if (level + 1 > goal.maxDay) break outer; // Guaranteed failure
+                        if (level + 1 >= goal.minDay && items.some(r => r.data.id === goal.target)) {
+                            goal.count -= 1;
+                            if (goal.count === 0) {
+                                shopGoalsCur.splice(i, 1);
+                            }
                         }
                     }
                 } else {
+                    if (rewardGoalsCur.length === 0) continue;
                     const rewards = rollRewards(entityPool, randomManager, level);
-                    allRewards.push(rewards);
-                    for (let i = 0; i < rewardTargets.length; i++) {
-                        if (rewards.some(r => r.data.name === rewardTargets[i])) {
-                            rewardTargets.splice(i, 1);
-                            break;
+                    for (let i = 0; i < rewardGoalsCur.length; i++) {
+                        const goal = rewardGoalsCur[i];
+                        if (level + 1 > goal.maxDay) break outer; // Guaranteed failure
+                        if (level + 1 >= goal.minDay && rewards.some(r => r.data.id === goal.target)) {
+                            goal.count -= 1;
+                            if (goal.count === 0) {
+                                rewardGoalsCur.splice(i, 1);
+                            }
                         }
                     }
                 }
             }
-            
-            if (k % 50000 === 0) {
-                output[0] = `${k} attempts`;
-                yield output;
+
+            if (attempts % 100_000 === 0) {
+                yield { attempts, time: performance.now() - start };
             }
-            if (rewardTargets.length === 0 && shopTargetCounts.every(v => v === 0)) {
-                output = [`${k} attempts`, `Seed ${seed}`];
-                for (const rewards of allRewards) {
-                    output.push(rewards.map(r => r.data.name).join(" | "));
-                }
-                yield output;
+
+            if (rewardGoalsCur.length === 0 && shopGoalsCur.length === 0) {
+                yield { attempts, time: performance.now() - start, seed };
                 return;
             }
         }
     }
-
-    let seed = $state("");
-    let output: string[] = $state([]);
 </script>
 
-<input type="text" bind:value={seed}>
-<button onclick={compute}>Compute</button>
+<main>
+    <div class="category">
+        <div class="title">Rewards</div>
 
-{#each output as line}
-    <p>{line}</p>
-{/each}
+        {#each rewardGoals as goal, i}
+            <div>
+                <input class="numberinput" type="number" min="1" bind:value={goal.count}>x
+                <select bind:value={goal.target}>
+                    {#each rewardTargets as targets}
+                        <optgroup label={targets.label}>
+                            {#each targets.values as target}
+                                <option value={target.id}>{target.name}</option>
+                            {/each}
+                        </optgroup>
+                    {/each}
+                </select>
+                on days
+                <input class="numberinput" type="number" min="1" max="56" bind:value={goal.minDay}>
+                to
+                <input class="numberinput" type="number" min="1" max="56" bind:value={goal.maxDay}>
+                <button onclick={() => rewardGoals.splice(i, 1)}>x</button>
+            </div>
+        {/each}
+
+        <div><button onclick={() => rewardGoals.push({ target: '', minDay: 1, maxDay: 1, count: 1 })}>Add goal</button></div>
+    </div>
+
+    <div class="category">
+        <div class="title">Shop</div>
+
+        {#each shopGoals as goal, i}
+            <div>
+                <input class="numberinput" type="number" min="1" bind:value={goal.count}>x
+                <select bind:value={goal.target}>
+                    {#each shopTargets as targets}
+                        <optgroup label={targets.label}>
+                            {#each targets.values as target}
+                                <option value={target.id}>{target.name}</option>
+                            {/each}
+                        </optgroup>
+                    {/each}
+                </select>
+                on days
+                <input class="numberinput" type="number" min="1" max="56" bind:value={goal.minDay}>
+                to
+                <input class="numberinput" type="number" min="1" max="56" bind:value={goal.maxDay}>
+                <button onclick={() => shopGoals.splice(i, 1)}>x</button>
+            </div>
+        {/each}
+
+        <div><button onclick={() => shopGoals.push({ target: '', minDay: 1, maxDay: 1, count: 1 })}>Add goal</button></div>
+    </div>
+
+    {#if running}
+        <button onclick={cancelSearch}>Cancel</button>
+    {:else}
+        <button onclick={search}>Search</button>
+    {/if}
+
+    <p>{output}</p>
+
+    <div class="container">
+        {#if shownSeed}
+            <p class="seed">Found seed: {shownSeed}</p>
+            <SeedDisplay seed={shownSeed} difficulty={shownDifficulty} />
+        {/if}
+    </div>
+</main>
 
 <style>
-    p {
-        margin-bottom: 2px;
+    main {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    main, input, select, button {
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.2rem;
+    }
+
+    .seed, .title {
+        font-size: 1.5rem;
+    }
+
+    .container {
+        margin: 40px 0;
+    }
+
+    .category {
+        margin: 20px 0;
+    }
+
+    .category > div {
+        margin: 10px 0;
+    }
+
+    .numberinput {
+        width: 3em;
     }
 </style>

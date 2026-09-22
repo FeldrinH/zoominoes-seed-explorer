@@ -1,27 +1,31 @@
 import { onDestroy } from "svelte";
 
 export class TaskContext {
+    #running: boolean = $state(false);
     #taskId: symbol | null = null;
 
     constructor() {
         onDestroy(() => this.stop());
     }
     
-    async run<T>(task: AsyncIterable<T>, callback: (value: T) => void) {
+    async run<T>(task: Iterable<T>, callback: (value: T) => void) {
         const taskId = Symbol();
+        this.#running = true;
         this.#taskId = taskId;
-        for await (const value of task) {
+        for (const value of task) {
             if (this.#taskId != taskId) break;
             callback(value)
             await yieldToBrowser();
         }
+        this.#running = false;
     }
 
     isRunning(): boolean {
-        return this.#taskId != null;
+        return this.#running;
     }
 
     stop() {
+        this.#running = false;
         this.#taskId = null;
     }
 }
