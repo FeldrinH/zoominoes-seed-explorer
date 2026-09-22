@@ -9,7 +9,7 @@
 </script>
 
 <div class="container">
-    <img src={`/sprites/${entity.data.fileName}.png`} alt={entity.data.name}>
+    <img src={`/sprites/${entity.data.id}.png`} alt={entity.data.name}>
     <div class="tooltip">
         <div class="name">{entity.data.name.toUpperCase()}</div>
         <div class="rarity">{RARITY_NAMES[entity.data.rarity]}</div>

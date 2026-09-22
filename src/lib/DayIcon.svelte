@@ -11,7 +11,7 @@
 
 <div class="container">
     {#if level.data.name}
-        <div class="sprite" style:background-color={isShop(level) ? '#4D5186' : '#664089'} style:mask-image={`url("/sprites/${level.data.fileName}.png")`}></div>
+        <div class="sprite" style:background-color={isShop(level) ? '#4D5186' : '#664089'} style:mask-image={`url("/sprites/${level.data.id}.png")`}></div>
         <div class="tooltip">{level.data.name.toUpperCase()}</div>
     {:else}
         {level.day}

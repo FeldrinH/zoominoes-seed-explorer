@@ -62,11 +62,11 @@ for obj in env_assets.objects:
         continue
 
     sprite = entity_data.Sprite.deref_parse_as_object().m_RD.texture.deref_parse_as_object()
-    sprite.image.save(os.path.join(sprites_root, f'{file_name}.png'))
+    sprite.image.save(os.path.join(sprites_root, f'{entity_data.id}.png'))
 
     entity_dict = {
+        '_fileName': file_name,
         'type': types[entity_type],
-        'fileName': file_name,
         'id': entity_data.id,
         'name': translations[entity_data.Name] if entity_data.Name else '',
         'rarity': entity_data.Rarity,
@@ -86,7 +86,9 @@ for obj in env_assets.objects:
 
 # Order of data is important. According to some forum posts online, Resources.LoadAll, which the game uses, sorts data alphabetically by file name.
 for entity_datas in data.values():
-    entity_datas.sort(key=lambda v: v['fileName'])
+    entity_datas.sort(key=lambda v: v['_fileName'])
+    for entity_data in entity_datas:
+        del entity_data['_fileName']
 
 with open(os.path.join(data_root, 'data.json'), mode='w', encoding='utf8') as f:
     data_encoded = json.dumps(data)

@@ -57,7 +57,6 @@ export const enum Subtype {
 
 export interface EntityData {
 	type: EntityType;
-	fileName: string;
 	id: string;
     name: string;
     rarity: Rarity;
