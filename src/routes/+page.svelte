@@ -31,7 +31,7 @@
 <main>
     <form onsubmit={e => e.preventDefault()}>
         <input type="text" placeholder="Enter seed..." bind:value={seed}>
-        <select placeholder="TERE LIST" bind:value={difficulty}>
+        <select bind:value={difficulty}>
             {#each DIFFICULTIES as difficulty}
                 <option value={difficulty.id}>{difficulty.name}</option>
             {/each}

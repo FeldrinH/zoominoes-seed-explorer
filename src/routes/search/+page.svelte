@@ -5,6 +5,7 @@
     import { getRandomSeed, RandomManager } from "@/game/RandomManager";
     import { isScheduledShop, rollRewards, rollShop } from "@/game/roll";
     import SeedDisplay from "@/lib/SeedDisplay.svelte";
+    import { loadValue, onDestroyOrHide, saveValue } from "@/lib/storage";
     import { TaskContext } from "@/lib/TaskContext.svelte";
 
     interface GoalData {
@@ -27,10 +28,16 @@
     const taskContext = new TaskContext();
     const running = $derived(taskContext.isRunning());
 
-    let difficulty = $state(MAX_DIFFICULTY.id);
+    const storedConfig = loadValue('search', { difficulty: MAX_DIFFICULTY.id, rewardGoals: [], shopGoals: [] });
 
-    const rewardGoals: GoalData[] = $state([]);
-    const shopGoals: GoalData[] = $state([]);
+    let difficulty = $state(storedConfig.difficulty);
+
+    const rewardGoals: GoalData[] = $state(storedConfig.rewardGoals);
+    const shopGoals: GoalData[] = $state(storedConfig.shopGoals);
+
+    onDestroyOrHide(() => {
+        saveValue('search', { difficulty, rewardGoals, shopGoals });
+    })
 
     let output: string = $state('');
 
@@ -118,6 +125,12 @@
 </script>
 
 <main>
+    <select bind:value={difficulty}>
+        {#each DIFFICULTIES as difficulty}
+            <option value={difficulty.id}>{difficulty.name}</option>
+        {/each}
+    </select>
+
     <div class="category">
         <div class="title">Rewards</div>
 
