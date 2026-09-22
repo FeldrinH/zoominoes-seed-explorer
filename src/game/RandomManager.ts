@@ -60,55 +60,62 @@ const INT_MAX_VALUE = 2147483647;
 
 // Based on https://github.com/dotnet/dotnet/blob/main/src/runtime/src/libraries/System.Private.CoreLib/src/System/Random.CompatImpl.cs
 export class Random {
+    _seed: number;
     _seedArray: number[];
     _inext: number;
     _inextp: number;
 
     constructor(seed: number) {
-        const seedArray = Array(56).fill(0);
-
-        const subtraction = (seed == INT_MIN_VALUE) ? INT_MAX_VALUE : Math.abs(seed);
-        let mj = 161803398 - subtraction; // magic number based on Phi (golden ratio)
-        seedArray[55] = mj;
-        let mk = 1;
-
-        let ii = 0;
-        for (let i = 1; i < 55; i++) {
-            // The range [1..55] is special (Knuth) and so we're wasting the 0'th position.
-            if ((ii += 21) >= 55) {
-                ii -= 55;
-            }
-
-            seedArray[ii] = mk;
-            mk = mj - mk;
-            if (mk < 0) {
-                mk += INT_MAX_VALUE;
-            }
-
-            mj = seedArray[ii];
-        }
-
-        for (let k = 1; k < 5; k++) {
-            for (let i = 1; i < 56; i++) {
-                let n = i + 30;
-                if (n >= 55) {
-                    n -= 55;
-                }
-
-                seedArray[i] -= seedArray[1 + n];
-                if (seedArray[i] < 0)
-                {
-                    seedArray[i] += INT_MAX_VALUE;
-                }
-            }
-        }
-
-        this._seedArray = seedArray;
+        this._seed = seed;
+        this._seedArray = [];
         this._inext = 0;
         this._inextp = 21;
     }
 
     next(minValue: number, maxValue: number) {
+        if (this._seedArray.length === 0) {
+            // Seed array init is slow, so we only do it when the RNG is actually used.
+
+            const seedArray = Array(56).fill(0);
+
+            const subtraction = (this._seed == INT_MIN_VALUE) ? INT_MAX_VALUE : Math.abs(this._seed);
+            let mj = 161803398 - subtraction; // magic number based on Phi (golden ratio)
+            seedArray[55] = mj;
+            let mk = 1;
+
+            let ii = 0;
+            for (let i = 1; i < 55; i++) {
+                // The range [1..55] is special (Knuth) and so we're wasting the 0'th position.
+                if ((ii += 21) >= 55) {
+                    ii -= 55;
+                }
+
+                seedArray[ii] = mk;
+                mk = mj - mk;
+                if (mk < 0) {
+                    mk += INT_MAX_VALUE;
+                }
+
+                mj = seedArray[ii];
+            }
+
+            for (let k = 1; k < 5; k++) {
+                for (let i = 1; i < 56; i++) {
+                    let n = i + 30;
+                    if (n >= 55) {
+                        n -= 55;
+                    }
+
+                    seedArray[i] -= seedArray[1 + n];
+                    if (seedArray[i] < 0) {
+                        seedArray[i] += INT_MAX_VALUE;
+                    }
+                }
+            }
+
+            this._seedArray = seedArray;
+        }
+
         const range = maxValue - minValue;
         if (range > INT_MAX_VALUE) {
             throw new Error("Random number range too large");

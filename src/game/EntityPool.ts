@@ -169,12 +169,10 @@ export class EntityPool {
 
     rollEntity(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): Entity {
 		const data = this.rollEntityData(entityType, rarity, rng, rngGroup, bannedDatas);
-		if (entityType === EntityType.Tile) {
-            // TODO: Because the color is drawn from RandomGroup.Create it is affected by random transforms and other transient events.
-            // This makes the color extremely hard to reliably predict, so maybe we should just exclude it from our data model?.
-            const color = rng.randomFromList((data as TileData).possibleColors, RandomGroup.Create);
-            return { data, color } as Tile
-        }
+        // TODO: Because the color is drawn from RandomGroup.Create, it is affected by random transforms and other transient events.
+        // This makes the color extremely hard to reliably predict, so for now we just ignore it.
+        // Also, not reading from RandomGroup.Create avoids the setup cost for that random group, which improves performance noticeably.
+        // const color = rng.randomFromList((data as TileData).possibleColors, RandomGroup.Create);
         return { data };
 	}
 
