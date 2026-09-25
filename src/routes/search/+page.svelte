@@ -55,7 +55,6 @@
                 shownSeed = value.seed;
             }
         });
-        console.log(taskContext.isRunning(), running);
     }
 
     function cancelSearch() {
@@ -141,7 +140,7 @@
                     {#each rewardTargets as targets}
                         <optgroup label={targets.label}>
                             {#each targets.values as target}
-                                <option value={target.id}>{target.name}</option>
+                                <option value={() => 12}>{target.name}</option>
                             {/each}
                         </optgroup>
                     {/each}
