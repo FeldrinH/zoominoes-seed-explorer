@@ -140,7 +140,7 @@
                     {#each rewardTargets as targets}
                         <optgroup label={targets.label}>
                             {#each targets.values as target}
-                                <option value={() => 12}>{target.name}</option>
+                                <option value={target.id}>{target.name}</option>
                             {/each}
                         </optgroup>
                     {/each}
