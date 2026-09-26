@@ -6,7 +6,7 @@ export function getQueryParams(): URLSearchParams {
 
 export function setQueryParams(...params: [string, string][]) {
     const url = new URL(window.location.href);
-    url.search = new URLSearchParams(params).toString();
+    url.search = new URLSearchParams(params.filter(p => p[1])).toString();
     history.replaceState(history.state, '', url);
 }
 

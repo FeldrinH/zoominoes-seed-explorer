@@ -3,7 +3,7 @@
     import { EntityType, Rarity } from "@/game/Entity";
     import { DIFFICULTIES, EntityPool, MAX_DIFFICULTY } from "@/game/EntityPool";
     import { getRandomSeed, RandomManager } from "@/game/RandomManager";
-    import { isScheduledShop, rollRewards, rollShop } from "@/game/roll";
+    import { isScheduledShop, rollRewards, rollShop, Zookeeper, ZOOKEEPERS } from "@/game/roll";
     import SeedDisplay from "@/lib/SeedDisplay.svelte";
     import { loadValue, onDestroyOrHide, saveValue } from "@/lib/storage";
     import { TaskContext } from "@/lib/TaskContext.svelte";
@@ -28,26 +28,29 @@
     const taskContext = new TaskContext();
     const running = $derived(taskContext.isRunning());
 
-    const storedConfig = loadValue('search', { difficulty: MAX_DIFFICULTY.id, rewardGoals: [], shopGoals: [] });
+    const storedConfig = loadValue('search', { difficulty: MAX_DIFFICULTY.id, zookeeper: Zookeeper.Generic, rewardGoals: [], shopGoals: [] });
 
     let difficulty = $state(storedConfig.difficulty);
+    let zookeeper = $state(storedConfig.zookeeper);
 
     const rewardGoals: GoalData[] = $state(storedConfig.rewardGoals);
     const shopGoals: GoalData[] = $state(storedConfig.shopGoals);
 
     onDestroyOrHide(() => {
-        saveValue('search', { difficulty, rewardGoals, shopGoals });
+        saveValue('search', { difficulty, zookeeper, rewardGoals, shopGoals });
     })
 
-    let output: string = $state('');
+    let output = $state('');
 
-    let shownSeed: string = $state('');
-    let shownDifficulty: string = $state('');
+    let shownSeed = $state('');
+    let shownDifficulty = $state('');
+    let shownZookeeper = $state(Zookeeper.Generic);
 
     function search() {
         output = '';
         shownSeed = '';
         shownDifficulty = difficulty;
+        shownZookeeper = zookeeper;
         taskContext.run(doSearch(), value => {
             const timeSeconds = value.time / 1000;
             output = `${value.attempts} attempts in ${timeSeconds.toFixed(1)} seconds (${value.attempts === 0 ? 0 : (value.attempts / timeSeconds).toFixed()} attempts per second)`
@@ -65,6 +68,7 @@
         const start = performance.now();
 
         const difficultyData = DIFFICULTIES.find(v => v.id === difficulty)!;
+        const zookeeperData = zookeeper;
 
         const rewardGoalsRef = $state.snapshot(rewardGoals).filter(g => g.target !== '');
         const shopGoalsRef = $state.snapshot(shopGoals).filter(g => g.target !== '');
@@ -97,7 +101,7 @@
                     }
                 } else {
                     if (rewardGoalsCur.length === 0) continue;
-                    const rewards = rollRewards(entityPool, randomManager, level);
+                    const rewards = rollRewards(entityPool, randomManager, zookeeperData, level);
                     for (let i = 0; i < rewardGoalsCur.length; i++) {
                         const goal = rewardGoalsCur[i];
                         if (level + 1 > goal.maxDay) break outer; // Guaranteed failure
@@ -128,6 +132,12 @@
     <select bind:value={difficulty}>
         {#each DIFFICULTIES as difficulty}
             <option value={difficulty.id}>{difficulty.name}</option>
+        {/each}
+    </select>
+
+    <select bind:value={zookeeper}>
+        {#each ZOOKEEPERS as zookeeper}
+            <option value={zookeeper.id}>{zookeeper.name}</option>
         {/each}
     </select>
 
@@ -194,7 +204,7 @@
     <div class="container">
         {#if shownSeed}
             <p class="seed">Found seed: {shownSeed}</p>
-            <SeedDisplay seed={shownSeed} difficulty={shownDifficulty} />
+            <SeedDisplay seed={shownSeed} difficulty={shownDifficulty} zookeeper={shownZookeeper} />
         {/if}
     </div>
 </main>

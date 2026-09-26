@@ -1,6 +1,17 @@
 import { EntityType, Rarity, type DifficultyData, type Entity, type EntityData, type Level } from "./Entity";
-import { type EntityPool } from "./EntityPool";
+import { EntityPool } from "./EntityPool";
 import { RandomGroup, type RandomManager } from "./RandomManager";
+
+// NB! Don't change existing values, they are stored in query parameters and browser storage.
+export const enum Zookeeper {
+    Generic = '',
+    Trinket = 'trinket',
+}
+
+export const ZOOKEEPERS = [
+    { name: 'Generic zookeeper', id: Zookeeper.Generic },
+    { name: 'Trinket', id: Zookeeper.Trinket },
+]
 
 export function isShop(level: Level): boolean {
     return level.data.rarity === Rarity.Uncommon;
@@ -25,9 +36,18 @@ export function rollLevels(entityPool: EntityPool, randomManager: RandomManager,
     return currentLevels;
 }
 
-// Based on GameController.GetRewards from decompiled Zoominoes source code.
+// Based on GameController.GetRewards and GoldRewardsView.Claim from decompiled Zoominoes source code.
 // Note: Level starts from 0, so day 1 is level 0.
-export function rollRewards(entityPool: EntityPool, randomManager: RandomManager, level: number, addSpell: boolean = true): Entity[] {
+export function rollRewards(entityPool: EntityPool, randomManager: RandomManager, zookeeper: Zookeeper, level: number, addSpell: boolean = true): Entity[] {
+    if (zookeeper === Zookeeper.Trinket) {
+        // Any souvenirs you have affect trinket rewards. This makes the rewards basically impossible to predict in any useful way,
+        // so we just read the random values without predicting anything.
+        // We read 1 random value for picking rarity and 3 random values for picking souvenirs.
+        for (let i = 0; i < 4; i++) {
+            randomManager.next(0, 1, RandomGroup.Rewards);
+        }
+    }
+
     const list: Entity[] = [];
     const list2: EntityData[] = [];
     const rarity = entityPool.rollRarity(level, EntityType.Tile, randomManager, RandomGroup.Rewards);

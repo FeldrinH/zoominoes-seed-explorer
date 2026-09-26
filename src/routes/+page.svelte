@@ -1,5 +1,6 @@
 <script lang="ts">
     import { DIFFICULTIES, MAX_DIFFICULTY } from "@/game/EntityPool";
+    import { Zookeeper, ZOOKEEPERS } from "@/game/roll";
     import SeedDisplay from "@/lib/SeedDisplay.svelte";
     import { getQueryParams, setQueryParams } from "@/lib/storage";
 
@@ -7,9 +8,11 @@
     
     let seed = $state(params.get('seed') || '');
     let difficulty = $state(params.get('difficulty') || MAX_DIFFICULTY.id)
+    let zookeeper = $state(params.get('zookeeper') as Zookeeper || Zookeeper.Generic);
     
     let shownSeed = $state('');
     let shownDifficulty = $state('');
+    let shownZookeeper = $state(Zookeeper.Generic);
 
     show();
 
@@ -19,11 +22,13 @@
 
             shownSeed = '';
             shownDifficulty = '';
+            shownZookeeper = Zookeeper.Generic;
         } else {
-            setQueryParams(['seed', seed], ['difficulty', difficulty]);
+            setQueryParams(['seed', seed], ['difficulty', difficulty], ['zookeeper', zookeeper]);
 
             shownSeed = seed;
             shownDifficulty = difficulty;
+            shownZookeeper = zookeeper;
         }
     }
 </script>
@@ -36,11 +41,16 @@
                 <option value={difficulty.id}>{difficulty.name}</option>
             {/each}
         </select>
+        <select bind:value={zookeeper}>
+            {#each ZOOKEEPERS as zookeeper}
+                <option value={zookeeper.id}>{zookeeper.name}</option>
+            {/each}
+        </select>
         <button onclick={show}>Show</button>
     </form>
 
     <div class="container">
-        <SeedDisplay seed={shownSeed} difficulty={shownDifficulty}/>
+        <SeedDisplay seed={shownSeed} difficulty={shownDifficulty} zookeeper={shownZookeeper} />
     </div>
 </main>
 
