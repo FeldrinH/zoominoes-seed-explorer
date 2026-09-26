@@ -31,7 +31,7 @@
         <li>You can't get the same souvenir twice. As a result, getting any souvenir affects all souvenirs offered in subsequent shops.
             This tool assumes that you have no souvenirs when calculating souvenirs offered in the shop, which unfortunately means that its predictions become incorrect as soon as you buy a souvenir.</li>
         <li>The same issue affects souvenir rewards given by Trinket. Any souvenir you choose affects all subsequent souvenir rewards,
-            so predicting any rewards beyond the first one is impossible without user input. Because of this, this tool does not predict souvenir rewards for Trinket.</li>
+            so predicting any rewards beyond the first one is impossible without user input. Because of this, this tool does not show predicted souvenir rewards for Trinket.</li>
         <li>Anything that changes the number of snacks, gems, souvenirs, or sales in the shop changes the offered items in all subsequent shops.
             This includes for example Coupon Clippers and Delivery Stork.</li>
         <li>Anything that forces a specific type of animal to appear in the rewards changes all subsequent animal rewards.
