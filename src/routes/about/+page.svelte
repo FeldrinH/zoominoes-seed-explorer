@@ -34,6 +34,7 @@
             so predicting any rewards beyond the first one is impossible without user input. Because of this, this tool does not show predicted souvenir rewards for Trinket.</li>
         <li>Anything that changes the number of snacks, gems, souvenirs, or sales in the shop changes the offered items in all subsequent shops.
             This includes for example Coupon Clippers and Delivery Stork.</li>
+        <li>Locking the shop changes the offered items in all subsequent shops, but only if the locked items include at least one that is on sale.</li>
         <li>Anything that forces a specific type of animal to appear in the rewards changes all subsequent animal rewards.
             This includes for example the Land, Sea, and Sky Incense.</li>
     </ul>
