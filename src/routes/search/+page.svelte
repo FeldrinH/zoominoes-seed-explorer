@@ -106,6 +106,7 @@
                             if (goal.count === 0) {
                                 rewardGoalsCur.splice(i, 1);
                             }
+                            break;
                         }
                     }
                 }
