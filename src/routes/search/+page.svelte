@@ -1,19 +1,11 @@
 <script lang="ts">
     import { getDataForType } from "@/game/data";
     import { EntityType, Rarity } from "@/game/Entity";
-    import { DIFFICULTIES, EntityPool, MAX_DIFFICULTY } from "@/game/EntityPool";
-    import { getRandomSeed, RandomManager } from "@/game/RandomManager";
-    import { isScheduledShop, rollRewards, rollShop, Zookeeper, ZOOKEEPERS } from "@/game/roll";
+    import { DIFFICULTIES, MAX_DIFFICULTY } from "@/game/EntityPool";
+    import { Zookeeper, ZOOKEEPERS } from "@/game/roll";
+    import { SearchRunner, type Goal } from "@/lib/SearchRunner.svelte";
     import SeedDisplay from "@/lib/SeedDisplay.svelte";
     import { loadValue, onDestroyOrHide, saveValue } from "@/lib/storage";
-    import { TaskContext } from "@/lib/TaskContext.svelte";
-
-    interface GoalData {
-        target: string;
-        minDay: number;
-        maxDay: number;
-        count: number;
-    }
 
     const rewardTargets = [
         { label: 'Animals', values: getDataForType(EntityType.Tile).filter(e => e.rarity !== Rarity.Special && e.rarity !== Rarity.Starter) },
@@ -25,16 +17,16 @@
         { label: 'Souvenirs', values: getDataForType(EntityType.Treasure).filter(e => e.rarity !== Rarity.Gem) },
     ];
 
-    const taskContext = new TaskContext();
-    const running = $derived(taskContext.isRunning());
+    const searchRunner = new SearchRunner();
+    const running = $derived(searchRunner.isRunning());
 
     const storedConfig = loadValue('search', { difficulty: MAX_DIFFICULTY.id, zookeeper: Zookeeper.Generic, rewardGoals: [], shopGoals: [] });
 
     let difficulty = $state(storedConfig.difficulty);
     let zookeeper = $state(storedConfig.zookeeper);
 
-    const rewardGoals: GoalData[] = $state(storedConfig.rewardGoals);
-    const shopGoals: GoalData[] = $state(storedConfig.shopGoals);
+    const rewardGoals: Goal[] = $state(storedConfig.rewardGoals);
+    const shopGoals: Goal[] = $state(storedConfig.shopGoals);
 
     onDestroyOrHide(() => {
         saveValue('search', { difficulty, zookeeper, rewardGoals, shopGoals });
@@ -51,9 +43,16 @@
         shownSeed = '';
         shownDifficulty = difficulty;
         shownZookeeper = zookeeper;
-        taskContext.run(doSearch(), value => {
-            const timeSeconds = value.time / 1000;
-            output = `${value.attempts} attempts in ${timeSeconds.toFixed(1)} seconds (${value.attempts === 0 ? 0 : (value.attempts / timeSeconds).toFixed()} attempts per second)`
+
+        const start = performance.now();
+        searchRunner.run({ 
+            difficulty,
+            zookeeper,
+            rewardGoals: $state.snapshot(rewardGoals),
+            shopGoals: $state.snapshot(shopGoals) 
+        }, value => {
+            const time = (performance.now() - start) / 1000;
+            output = `${value.attempts} attempts in ${time.toFixed(1)} seconds (${value.attempts === 0 ? 0 : (value.attempts / time).toFixed()} attempts per second)`
             if (value.seed) {
                 shownSeed = value.seed;
             }
@@ -61,70 +60,7 @@
     }
 
     function cancelSearch() {
-        taskContext.stop();
-    }
-
-    function* doSearch() {
-        const start = performance.now();
-
-        const difficultyData = DIFFICULTIES.find(v => v.id === difficulty)!;
-        const zookeeperData = zookeeper;
-
-        const rewardGoalsRef = $state.snapshot(rewardGoals).filter(g => g.target !== '');
-        const shopGoalsRef = $state.snapshot(shopGoals).filter(g => g.target !== '');
-
-        yield { attempts: 0, time: 0 };
-
-        const entityPool = new EntityPool();
-        
-        for (let attempts = 1;; attempts++) {
-            const seed = getRandomSeed(8);
-            const randomManager = new RandomManager(seed);
-        
-            const rewardGoalsCur = rewardGoalsRef.map(g => ({ ...g }));
-            const shopGoalsCur = shopGoalsRef.map(g => ({ ...g }));
-
-            outer:
-            for (let level = 0; level < difficultyData.levelSchedule.length; level++) {
-                if (isScheduledShop(level, difficultyData)) {
-                    if (shopGoalsCur.length === 0) continue;
-                    const items = rollShop(entityPool, randomManager, level, false);
-                    for (let i = shopGoalsCur.length - 1; i >= 0; i--) {
-                        const goal = shopGoalsCur[i];
-                        if (level + 1 > goal.maxDay) break outer; // Guaranteed failure
-                        if (level + 1 >= goal.minDay && items.some(r => r.data.id === goal.target)) {
-                            goal.count -= 1;
-                            if (goal.count === 0) {
-                                shopGoalsCur.splice(i, 1);
-                            }
-                        }
-                    }
-                } else {
-                    if (rewardGoalsCur.length === 0) continue;
-                    const rewards = rollRewards(entityPool, randomManager, zookeeperData, level);
-                    for (let i = 0; i < rewardGoalsCur.length; i++) {
-                        const goal = rewardGoalsCur[i];
-                        if (level + 1 > goal.maxDay) break outer; // Guaranteed failure
-                        if (level + 1 >= goal.minDay && rewards.some(r => r.data.id === goal.target)) {
-                            goal.count -= 1;
-                            if (goal.count === 0) {
-                                rewardGoalsCur.splice(i, 1);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (attempts % 100_000 === 0) {
-                yield { attempts, time: performance.now() - start };
-            }
-
-            if (rewardGoalsCur.length === 0 && shopGoalsCur.length === 0) {
-                yield { attempts, time: performance.now() - start, seed };
-                return;
-            }
-        }
+        searchRunner.stop();
     }
 </script>
 
