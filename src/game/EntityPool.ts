@@ -126,31 +126,31 @@ const oddsByTypeAndRarityAndLevel = new Map([
 ]);
 
 export class EntityPool {
-	dataByTypeAndRarity: Map<EntityType, Map<Rarity, EntityData[]>>;
+	dataByTypeAndRarity: EntityData[][][];
 
 	constructor() {
-		this.dataByTypeAndRarity = new Map();
-		for (const value2 of [EntityType.Tile, EntityType.Treasure, EntityType.Spell, EntityType.Level]) {
-			this.dataByTypeAndRarity.set(value2, new Map());
-			for (const value3 of RARITY_VALUES) {
-				this.dataByTypeAndRarity.get(value2)!.set(value3, []);
+		this.dataByTypeAndRarity = [];
+		for (const entityType of [EntityType.Tile, EntityType.Treasure, EntityType.Spell, EntityType.Level]) {
+            while (this.dataByTypeAndRarity.length <= entityType) {
+                this.dataByTypeAndRarity.push([]);
+            }
+			for (const rarity of RARITY_VALUES) {
+                while (this.dataByTypeAndRarity[entityType].length <= rarity) {
+                    this.dataByTypeAndRarity[entityType].push([]);
+                }
 			}
-			const array = getDataForType(value2);
+			const array = getDataForType(entityType);
 			for (const entityData of array) {
-				this.dataByTypeAndRarity.get(value2)!.get(entityData.rarity)!.push(entityData);
+				this.dataByTypeAndRarity[entityType][entityData.rarity].push(entityData);
 			}
 		}
-	}
-
-	getAllEntityData(entityType: EntityType, rarity: Rarity): EntityData[] {
-		return this.dataByTypeAndRarity.get(entityType)!.get(rarity)!;
 	}
 
 	rollEntityData(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): EntityData {
 		if (bannedDatas == null) {
 			bannedDatas = [];
 		}
-		const list = this.dataByTypeAndRarity.get(entityType)!.get(rarity)!.slice();
+		const list = this.dataByTypeAndRarity[entityType][rarity].slice();
 		for (const bannedData of bannedDatas) {
             const index = list.indexOf(bannedData);
             if (index !== -1) {
