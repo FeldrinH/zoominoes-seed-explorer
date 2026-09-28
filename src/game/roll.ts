@@ -48,14 +48,9 @@ export function rollRewards(entityPool: EntityPool, randomManager: RandomManager
         }
     }
 
-    const list: Entity[] = [];
-    const list2: EntityData[] = [];
     const rarity = entityPool.rollRarity(level, EntityType.Tile, randomManager, RandomGroup.Rewards);
     // TODO: Support color and type incense rewards?
-    const num = 3;
-    if (num > 0) {
-        list.push(...entityPool.rollUniquesByRarity(EntityType.Tile, rarity, num, randomManager, RandomGroup.Rewards, list2));
-    }
+    const list = entityPool.rollUniquesByRarity(EntityType.Tile, rarity, 3, randomManager, RandomGroup.Rewards, []);
     if (addSpell) {
         let rarity2 = Rarity.Common;
         if (randomManager.next(0, 100, RandomGroup.Rewards) < 25) {
@@ -63,6 +58,18 @@ export function rollRewards(entityPool: EntityPool, randomManager: RandomManager
         }
         const item = entityPool.rollEntity(EntityType.Spell, rarity2, randomManager, RandomGroup.Rewards, []);
         list.push(item);
+    }
+    return list;
+}
+
+// Based on GameController.GetRarityRewards from decompiled Zoominoes source code.
+// Note: Currently the snack is not included in the returned rewards, even if it is rolled (if addSpell == true).
+export function rollRarityRewards(entityPool: EntityPool, randomManager: RandomManager, rarity: Rarity, addSpell: boolean = true): Entity[] {
+    // TODO: Support color and type incense rewards?
+    const list = entityPool.rollUniquesByRarity(EntityType.Tile, rarity, 3, randomManager, RandomGroup.Rewards, []);
+    if (addSpell) {
+        randomManager.next(0, 1, RandomGroup.Rewards); // Emulate rarity roll
+        randomManager.next(0, 1, RandomGroup.Rewards); // Emulate entity roll
     }
     return list;
 }
