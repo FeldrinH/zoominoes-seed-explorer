@@ -61,7 +61,7 @@ export function rollRewards(entityPool: EntityPool, randomManager: RandomManager
         if (randomManager.next(0, 100, RandomGroup.Rewards) < 25) {
             rarity2 = Rarity.Uncommon;
         }
-        const item = entityPool.rollEntity(EntityType.Spell, rarity2, randomManager, RandomGroup.Rewards);
+        const item = entityPool.rollEntity(EntityType.Spell, rarity2, randomManager, RandomGroup.Rewards, []);
         list.push(item);
     }
     return list;

@@ -146,10 +146,7 @@ export class EntityPool {
 		}
 	}
 
-	rollEntityData(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): EntityData {
-		if (bannedDatas == null) {
-			bannedDatas = [];
-		}
+	rollEntityData(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[]): EntityData {
 		const list = this.dataByTypeAndRarity[entityType][rarity].slice();
 		for (const bannedData of bannedDatas) {
             const index = list.indexOf(bannedData);
@@ -167,7 +164,7 @@ export class EntityPool {
         return rng.randomFromList(list, rngGroup);
 	}
 
-    rollEntity(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): Entity {
+    rollEntity(entityType: EntityType, rarity: Rarity, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[]): Entity {
 		const data = this.rollEntityData(entityType, rarity, rng, rngGroup, bannedDatas);
         // TODO: Because the color is drawn from RandomGroup.Create, it is affected by random transforms and other transient events.
         // This makes the color extremely hard to reliably predict, so for now we just ignore it.
@@ -176,10 +173,7 @@ export class EntityPool {
         return { data };
 	}
 
-	rollUniquesByRarity(entityType: EntityType, rarity: Rarity, count: number, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): Entity[] {
-		if (bannedDatas == null) {
-			bannedDatas = [];
-		}
+	rollUniquesByRarity(entityType: EntityType, rarity: Rarity, count: number, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[]): Entity[] {
 		const list = [];
 		for (let i = 0; i < count; i++) {
 			const entity = this.rollEntity(entityType, rarity, rng, rngGroup, bannedDatas);
@@ -191,10 +185,7 @@ export class EntityPool {
 		return list;
 	}
 
-	rollUniquesByLevel(level: number, entityType: EntityType, count: number, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[] | null = null): Entity[] {
-		if (bannedDatas == null) {
-			bannedDatas = [];
-		}
+	rollUniquesByLevel(level: number, entityType: EntityType, count: number, rng: RandomManager, rngGroup: RandomGroup, bannedDatas: EntityData[]): Entity[] {
 		if (entityType == EntityType.Tile) {
 			const rarity = this.rollRarity(level, entityType, rng, rngGroup);
 			return this.rollUniquesByRarity(entityType, rarity, count, rng, rngGroup, bannedDatas);
