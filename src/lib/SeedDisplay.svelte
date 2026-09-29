@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { type Entity, type Level } from "@/game/Entity";
+    import { EntityType, Rarity, type Entity, type Level } from "@/game/Entity";
     import { DIFFICULTIES, EntityPool } from "@/game/EntityPool";
     import { RandomManager } from "@/game/RandomManager";
-    import { isShop, rollLevels, rollRewards, rollShop, Zookeeper } from "@/game/roll";
+    import { isShop, rollLevels, rollRarityRewards, rollRewards, rollShop, Zookeeper } from "@/game/roll";
     import DayIcon from "@/lib/DayIcon.svelte";
     import EntityIcon from "@/lib/EntityIcon.svelte";
 
@@ -38,6 +38,17 @@
             if (isShop(levels[level])) {
                 const rewards = rollShop(entityPool, randomManager, level, false);
                 days.push({ level: levels[level], rewards });
+                
+                if (rewards.some(r => r.data.id === 'a30d767e921684c459678de07c7706c8')) {
+                    const packRewards = [];
+                    for (let i = 0; i < 3; i++) {
+                        packRewards.push(...rollRarityRewards(entityPool, randomManager, Rarity.Mythical));
+                    }
+                    days.push({ 
+                        level: { day: -1, data: { type: EntityType.Treasure, id: 'a30d767e921684c459678de07c7706c8', rarity: Rarity.Uncommon, name: 'God Pack' } },
+                        rewards: packRewards,
+                    });
+                }
             } else {
                 const rewards = level == 27 ? [] : rollRewards(entityPool, randomManager, zookeeperData, level);
                 days.push({ level: levels[level], rewards });
