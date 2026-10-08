@@ -78,7 +78,8 @@ export class Random {
 
             const seedArray = Array(56).fill(0);
 
-            const subtraction = (this._seed == INT_MIN_VALUE) ? INT_MAX_VALUE : Math.abs(this._seed);
+            const seed = this._seed | 0;
+            const subtraction = (seed == INT_MIN_VALUE) ? INT_MAX_VALUE : Math.abs(seed);
             let mj = 161803398 - subtraction; // magic number based on Phi (golden ratio)
             seedArray[55] = mj;
             let mk = 1;
